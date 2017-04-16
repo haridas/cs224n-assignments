@@ -5,7 +5,6 @@ import random
 from q1_softmax import softmax
 from q2_sigmoid import sigmoid, sigmoid_grad
 from q2_gradcheck import gradcheck_naive
-#from test_neural import gradcheck_naive
 
 
 def forward_backward_prop(data, labels, params, dimensions):
@@ -69,6 +68,8 @@ def forward_backward_prop(data, labels, params, dimensions):
     ### END YOUR CODE
 
     # Derivative of the final layer(softmax) output wrt sigmoid neuron output
+    # Averaging will help to fasten the numerical optimization. The backprop
+    # works fine without averaging also.
     d0 = (model_pred - labels) / labels.shape[0]
 
 
