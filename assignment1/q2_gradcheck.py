@@ -13,11 +13,10 @@ def gradcheck_naive(f, x):
          cost and its gradients
     x -- the point (numpy array) to check the gradient at
     """
-
     rndstate = random.getstate()
     random.setstate(rndstate)
-    fx, grad = f(x) # Evaluate function value at original point
-    h = 1e-4        # Do not change this!
+    cost, grad = f(x) # Evaluate function value at original point
+    h = 1e-4          # Do not change this!
 
     # Iterate over all indexes in x
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
@@ -30,13 +29,23 @@ def gradcheck_naive(f, x):
         # to test cost functions with built in randomness later.
 
         ### YOUR CODE HERE:
-        if not ix:
-            # Single scalar, also make the intputs into same format.
-            ix = 0
-            x = np.array([x])
-            grad = np.array([grad])
+        # Update the each params at a time, as we are doing partial derivative
+        # for one param at a time. In case of Neural network the single function
+        # which represent it is "cost function", similar to that of small functions
+        # like f(x) = sum(x ** 2) and f`(x) = 2 * x.
+        oldx = x[ix]
+        x[ix] = oldx - h
+        random.setstate(rndstate)
+        fmin, _ = f(x)
 
-        numgrad = (f(x[ix] + h)[0] - f(x[ix] - h)[0]) / ( 2 * h)
+        x[ix] = oldx + h
+        random.setstate(rndstate)
+        fmax, _ = f(x)
+
+        x[ix] = oldx
+
+        numgrad = (fmax - fmin) / (2 * h)
+
         ### END YOUR CODE
 
         # Compare gradients

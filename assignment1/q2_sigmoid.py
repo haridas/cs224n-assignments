@@ -15,7 +15,7 @@ def sigmoid(x):
     """
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    s = 1 / ( 1 + np.exp(-x))
     ### END YOUR CODE
 
     return s
@@ -33,11 +33,8 @@ def sigmoid_grad(s):
     Return:
     ds -- Your computed gradient.
     """
-
-    ### YOUR CODE HERE
-    raise NotImplementedError
-    ### END YOUR CODE
-
+    # Derivative of sigmoid function. D ( sig ( z ) ) = sig(z) ( 1 - sig(z))
+    ds = s * ( 1 - s )
     return ds
 
 
@@ -72,7 +69,6 @@ def test_sigmoid():
     """
     print "Running your tests..."
     ### YOUR CODE HERE
-    raise NotImplementedError
     ### END YOUR CODE
 
 

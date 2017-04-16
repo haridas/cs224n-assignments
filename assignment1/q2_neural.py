@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-
 import numpy as np
 import random
 
 from q1_softmax import softmax
 from q2_sigmoid import sigmoid, sigmoid_grad
 from q2_gradcheck import gradcheck_naive
+#from test_neural import gradcheck_naive
 
 
 def forward_backward_prop(data, labels, params, dimensions):
@@ -21,10 +21,24 @@ def forward_backward_prop(data, labels, params, dimensions):
     params -- Model parameters, these are unpacked for you.
     dimensions -- A tuple of input dimension, number of hidden units
                   and output dimension
+
+
+    Network topology.
+
+    Input layer ( 10 Neurons ) -> Hidden ( 5 Neurons ) -> Output ( 10 Neurons )
+
+    W1 (10 x 5) + b1 (1 x 5)  = 55
+    W2 (5 x 10) + b1 (1 x 10) = 60 
+    Total params = 115.
+    Backpropagation has to update total of 115 params.
+
+    Cost fun is Cross entropy fun.
     """
 
     ### Unpack network parameters (do not modify)
     ofs = 0
+
+    # input layer size, hidden layer size, output layer size.
     Dx, H, Dy = (dimensions[0], dimensions[1], dimensions[2])
 
     W1 = np.reshape(params[ofs:ofs+ Dx * H], (Dx, H))
@@ -36,12 +50,41 @@ def forward_backward_prop(data, labels, params, dimensions):
     b2 = np.reshape(params[ofs:ofs + Dy], (1, Dy))
 
     ### YOUR CODE HERE: forward propagation
-    raise NotImplementedError
+    # 20 x 10 * 10 x 5 => (20 x 5) + 1 x 5
+    layer1_activation = sigmoid(data.dot(W1) + b1)
+
+    # Usually the final layer shouldn'tapplied the non-linearity, as after
+    # that there is no extra learning process, also some non-linearity changes
+    # or transform the neuron output for further learning. As the output
+    # layer is not going to do any of this, just do the linear transformation
+    # done inside each output neurons.
+    layer2_activation = layer1_activation.dot(W2) + b2
+    model_pred = softmax(layer2_activation) # Squash to probabilities.
+
+    # cost calculated using cross entropy function. Average wrt #samples.
+    cost = - np.multiply(labels, np.log(model_pred)).sum() / labels.shape[0]
     ### END YOUR CODE
 
     ### YOUR CODE HERE: backward propagation
-    raise NotImplementedError
     ### END YOUR CODE
+
+    # Derivative of the final layer(softmax) output wrt sigmoid neuron output
+    d0 = (model_pred - labels) / labels.shape[0]
+
+
+    # Derivative of sigmoid nueron output layer wrt previous weights.
+    # Derivative wrt to W2s
+    # 5 X 20 O 20 X 10 => 5 X 10
+    gradW2 = np.dot(layer1_activation.transpose(), d0)
+    # b2 shape is 1 x 10, d0 = N(20) x 10
+    gradb2  = d0.sum(axis=0)
+
+    # Derivative of sigmoid nueron output layer wrt previous weights.
+    # Derivative wrt to W1s
+    d1 = np.multiply(sigmoid_grad(layer1_activation), np.dot(d0, W2.transpose()))
+
+    gradW1 = np.dot(data.transpose(), d1)
+    gradb1 = d1.sum(axis=0)
 
     ### Stack gradients (do not modify)
     grad = np.concatenate((gradW1.flatten(), gradb1.flatten(),
@@ -67,8 +110,10 @@ def sanity_check():
     params = np.random.randn((dimensions[0] + 1) * dimensions[1] + (
         dimensions[1] + 1) * dimensions[2], )
 
-    gradcheck_naive(lambda params:
-        forward_backward_prop(data, labels, params, dimensions), params)
+    # All other variables are fixed, we are finding gradients for Weights, so
+    # We only need to check the numerical check for that only keeping all other
+    # variables constant.
+    gradcheck_naive(lambda params: forward_backward_prop(data, labels, params, dimensions), params)
 
 
 def your_sanity_checks():
@@ -80,7 +125,7 @@ def your_sanity_checks():
     """
     print "Running your sanity checks..."
     ### YOUR CODE HERE
-    raise NotImplementedError
+    #raise NotImplementedError
     ### END YOUR CODE
 
 
